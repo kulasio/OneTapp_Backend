@@ -2,9 +2,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-    name: {
+    firstName: {
         type: String,
-        required: [true, 'Please add a name']
+        required: [true, 'Please add a first name']
+    },
+    lastName: {
+        type: String,
+        required: [true, 'Please add a last name']
     },
     email: {
         type: String,
@@ -15,16 +19,38 @@ const userSchema = new mongoose.Schema({
             'Please add a valid email'
         ]
     },
+    phone: {
+        type: String,
+        required: [true, 'Please add a phone number'],
+        match: [
+            /^[0-9]{10}$/,
+            'Please add a valid 10-digit phone number'
+        ]
+    },
     password: {
         type: String,
         required: [true, 'Please add a password'],
         minlength: 6,
         select: false
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now
     }
+});
+
+// Virtual for full name
+userSchema.virtual('name').get(function() {
+    return `${this.firstName} ${this.lastName}`;
 });
 
 // Encrypt password using bcrypt
