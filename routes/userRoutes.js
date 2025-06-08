@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 // @desc    Register a new user
 // @route   POST /api/users
@@ -150,24 +151,113 @@ router.post('/login', async (req, res) => {
 });
 
 // @desc    Get all users
-// @route   GET /api/users
-// @access  Private/Admin
-router.get('/', async (req, res) => {
-  try {
-    const users = await User.find({}, '-password');
-    res.status(200).json({
-      success: true,
-      count: users.length,
-      data: users
-    });
-  } catch (error) {
-    console.error('Get users error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Error fetching users',
-      error: error.message 
-    });
-  }
+// @route   GET /api/admin/users
+// @access  Private (super_admin)
+router.get('/', protect, authorize(['super_admin']), async (req, res) => {
+    try {
+        const users = await User.find({}).select('-password');
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get user by ID
+// @route   GET /api/admin/users/:id
+// @access  Private (super_admin)
+router.get('/:id', protect, authorize(['super_admin']), async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Create new user
+// @route   POST /api/admin/users
+// @access  Private (super_admin)
+router.post('/', protect, authorize(['super_admin']), async (req, res) => {
+    try {
+        const { name, email, password, role } = req.body;
+
+        // Check if user exists
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        // Create user
+        const user = await User.create({
+            name,
+            email,
+            password,
+            role: role || 'viewer'
+        });
+
+        if (user) {
+            res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            });
+        } else {
+            res.status(400).json({ message: 'Invalid user data' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Update user
+// @route   PUT /api/admin/users/:id
+// @access  Private (super_admin)
+router.put('/:id', protect, authorize(['super_admin']), async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.name = req.body.name || user.name;
+        user.email = req.body.email || user.email;
+        user.role = req.body.role || user.role;
+
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
+
+        const updatedUser = await user.save();
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Delete user
+// @route   DELETE /api/admin/users/:id
+// @access  Private (super_admin)
+router.delete('/:id', protect, authorize(['super_admin']), async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        await user.remove();
+        res.json({ message: 'User removed' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 module.exports = router; 
