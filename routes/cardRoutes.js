@@ -1,54 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const { protect, authorize } = require('../middleware/authMiddleware');
-const {
-    getCards,
-    getCard,
-    createCard,
-    updateCard,
-    deleteCard,
-    uploadCardImage,
-    getCardAnalytics
-} = require('../controllers/cardController');
-const multer = require('multer');
-const path = require('path');
+const Card = require('../models/cardModel');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, `card-${Date.now()}${path.extname(file.originalname)}`);
-    }
+// @desc    Get all cards
+// @route   GET /api/cards
+// @access  Private
+router.get('/', async (req, res) => {
+  try {
+    // Optionally, filter by user: /api/cards?user=USER_ID
+    const filter = req.query.user ? { user: req.query.user } : {};
+    const cards = await Card.find(filter);
+    res.status(200).json(cards);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
 
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-    fileFilter: function (req, file, cb) {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only image files are allowed!'), false);
-        }
+// @desc    Create a new card
+// @route   POST /api/cards
+// @access  Private
+router.post('/', async (req, res) => {
+  try {
+    const { user, nfcId, template, socialLinks, website, bio, customFields } = req.body;
+    if (!user || !nfcId) {
+      return res.status(400).json({ message: 'User and NFC ID are required' });
     }
+    const card = await Card.create({ user, nfcId, template, socialLinks, website, bio, customFields });
+    res.status(201).json(card);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 });
-
-// Routes
-router.route('/')
-    .get(protect, authorize(['super_admin', 'card_manager', 'viewer']), getCards)
-    .post(protect, authorize(['super_admin', 'card_manager']), createCard);
-
-router.route('/:id')
-    .get(protect, authorize(['super_admin', 'card_manager', 'viewer']), getCard)
-    .put(protect, authorize(['super_admin', 'card_manager']), updateCard)
-    .delete(protect, authorize(['super_admin']), deleteCard);
-
-router.route('/:id/image')
-    .post(protect, authorize(['super_admin', 'card_manager']), upload.single('image'), uploadCardImage);
-
-router.route('/:id/analytics')
-    .get(protect, authorize(['super_admin', 'card_manager', 'viewer']), getCardAnalytics);
 
 module.exports = router; 
