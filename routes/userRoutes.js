@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const adminOnly = require('../middleware/adminMiddleware');
 
 // @desc    Register a new user
 // @route   POST /api/users
@@ -152,7 +153,7 @@ router.post('/login', async (req, res) => {
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private/Admin
-router.get('/', async (req, res) => {
+router.get('/', adminOnly, async (req, res) => {
   try {
     const users = await User.find({}, '-password');
     res.status(200).json({
