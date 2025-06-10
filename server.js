@@ -20,6 +20,7 @@ app.use(cors());
 // Routes
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/cards', require('./routes/cardRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/', (req, res) => {
   res.send('NFC Backend API is running!');
