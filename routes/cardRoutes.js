@@ -1,16 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const Card = require('../models/cardModel');
+const { protect, admin } = require('../middleware/authMiddleware');
 
 // @desc    Get all cards
 // @route   GET /api/cards
-// @access  Private
-router.get('/', async (req, res) => {
+// @access  Private/Admin
+router.get('/', protect, admin, async (req, res) => {
   try {
-    // Optionally, filter by user: /api/cards?user=USER_ID
-    const filter = req.query.user ? { user: req.query.user } : {};
-    const cards = await Card.find(filter);
-    res.status(200).json(cards);
+    const cards = await Card.find({}).populate('user', 'name email');
+    res.json({ cards });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
