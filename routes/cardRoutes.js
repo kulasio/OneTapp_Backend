@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Card = require('../models/cardModel');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 // @desc    Get all cards
 // @route   GET /api/cards
 // @access  Private/Admin
-router.get('/', protect, admin, async (req, res) => {
+router.get('/', protect, authorize('admin'), async (req, res) => {
   try {
     const cards = await Card.find({}).populate('user', 'name email');
     res.json({ cards });
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
 // @desc    Get card by ID
 // @route   GET /api/cards/:id
 // @access  Private/Admin
-router.get('/:id', protect, admin, async (req, res) => {
+router.get('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const card = await Card.findById(req.params.id);
     if (!card) return res.status(404).json({ message: 'Card not found' });
@@ -47,7 +47,7 @@ router.get('/:id', protect, admin, async (req, res) => {
 // @desc    Update card
 // @route   PUT /api/cards/:id
 // @access  Private/Admin
-router.put('/:id', protect, admin, async (req, res) => {
+router.put('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const updates = req.body;
     const card = await Card.findByIdAndUpdate(req.params.id, updates, { new: true });
@@ -61,7 +61,7 @@ router.put('/:id', protect, admin, async (req, res) => {
 // @desc    Delete card
 // @route   DELETE /api/cards/:id
 // @access  Private/Admin
-router.delete('/:id', protect, admin, async (req, res) => {
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const card = await Card.findByIdAndDelete(req.params.id);
     if (!card) return res.status(404).json({ message: 'Card not found' });
