@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-const userSchema = new mongoose.Schema({
-    firstName: {
+const userSchema = mongoose.Schema({
+    username: {
         type: String,
-        required: [true, 'Please add a first name']
-    },
-    lastName: {
-        type: String,
-        required: [true, 'Please add a last name']
+        required: [true, 'Please add a username'],
+        unique: true,
+        trim: true,
+        minlength: [3, 'Username must be at least 3 characters long']
     },
     email: {
         type: String,
@@ -19,38 +19,28 @@ const userSchema = new mongoose.Schema({
             'Please add a valid email'
         ]
     },
-    phone: {
-        type: String,
-        required: [true, 'Please add a phone number'],
-        match: [
-            /^[0-9]{10}$/,
-            'Please add a valid 10-digit phone number'
-        ]
-    },
     password: {
         type: String,
         required: [true, 'Please add a password'],
-        minlength: 6,
+        minlength: [6, 'Password must be at least 6 characters long'],
         select: false
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['admin', 'user'],
         default: 'user'
     },
-    isVerified: {
-        type: Boolean,
-        default: false
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active'
     },
-    createdAt: {
+    lastLogin: {
         type: Date,
-        default: Date.now
+        default: null
     }
-});
-
-// Virtual for full name
-userSchema.virtual('name').get(function() {
-    return `${this.firstName} ${this.lastName}`;
+}, {
+    timestamps: true
 });
 
 // Encrypt password using bcrypt
@@ -58,9 +48,19 @@ userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) {
         next();
     }
+
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 });
+
+// Sign JWT and return
+userSchema.methods.getSignedJwtToken = function() {
+    return jwt.sign(
+        { id: this._id, role: this.role },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRE }
+    );
+};
 
 // Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function(enteredPassword) {
