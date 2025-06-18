@@ -57,7 +57,7 @@ exports.loginUser = async (req, res) => {
             token
         });
     } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: err.message, stack: err.stack });
     }
 };
 
