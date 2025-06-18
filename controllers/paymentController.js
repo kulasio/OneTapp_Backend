@@ -1,8 +1,7 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const MAYA_API_KEY = process.env.MAYA_API_KEY;
-const MAYA_SECRET_KEY = process.env.MAYA_SECRET_KEY;
+const MAYA_API_KEY = process.env.MAYA_API_KEY; // This should be the public key (pk-...)
 const MAYA_API_URL = process.env.MAYA_API_URL;
 
 // Create Maya Checkout
@@ -45,12 +44,9 @@ exports.createCheckout = async (req, res) => {
                 ]
             },
             {
-                auth: {
-                    username: process.env.MAYA_SECRET_KEY,
-                    password: process.env.MAYA_API_KEY
-                },
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Basic ${Buffer.from(MAYA_API_KEY + ':').toString('base64')}`
                 }
             }
         );
