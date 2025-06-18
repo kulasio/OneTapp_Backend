@@ -6,8 +6,8 @@ const bcrypt = require('bcryptjs');
 // @route   POST /api/auth/register
 // @access  Public
 exports.registerUser = async (req, res) => {
-    const { username, email, password, role } = req.body;
-    if (!username || !email || !password) {
+    const { email, password, role } = req.body;
+    if (!email || !password) {
         return res.status(400).json({ message: 'Please fill in all fields' });
     }
     try {
@@ -15,11 +15,10 @@ exports.registerUser = async (req, res) => {
         if (user) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        user = await User.create({ username, email, password, role });
+        user = await User.create({ email, password, role });
         const token = user.getSignedJwtToken();
         res.status(201).json({
             _id: user._id,
-            username: user.username,
             email: user.email,
             role: user.role,
             token
@@ -51,7 +50,6 @@ exports.loginUser = async (req, res) => {
         const token = user.getSignedJwtToken();
         res.json({
             _id: user._id,
-            username: user.username,
             email: user.email,
             role: user.role,
             token
@@ -69,7 +67,6 @@ exports.getMe = async (req, res) => {
         const user = await User.findById(req.user.id);
         res.json({
             _id: user._id,
-            username: user.username,
             email: user.email,
             role: user.role
         });
