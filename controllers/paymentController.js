@@ -46,8 +46,8 @@ exports.createCheckout = async (req, res) => {
             },
             {
                 auth: {
-                    username: MAYA_API_KEY,
-                    password: MAYA_SECRET_KEY
+                    username: process.env.MAYA_SECRET_KEY,
+                    password: process.env.MAYA_API_KEY
                 },
                 headers: {
                     'Content-Type': 'application/json'
