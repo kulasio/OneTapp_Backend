@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const { errorHandler } = require('./middleware/errorMiddleware');
 const axios = require('axios');
+const Subscription = require('./models/subscriptionModel');
 
 // Load environment variables
 dotenv.config();
@@ -42,6 +43,17 @@ app.post('/maya-checkout', async (req, res) => {
       if (plan === 'Pro Tap') amount = 2999;
       if (plan === 'Power Tap') amount = 8999;
     }
+    const requestReferenceNumber = `SUBSCRIPTION-${Date.now()}`;
+
+    // Save the subscription as pending
+    await Subscription.create({
+      email,
+      phone,
+      plan,
+      billingPeriod,
+      status: 'pending',
+      requestReferenceNumber
+    });
 
     const response = await axios.post(
       process.env.MAYA_API_URL + '/checkout/v1/checkouts',
@@ -57,7 +69,7 @@ app.post('/maya-checkout', async (req, res) => {
           failure: 'https://one-tapp-frontend.vercel.app/failure',
           cancel: 'https://one-tapp-frontend.vercel.app/cancel'
         },
-        requestReferenceNumber: `SUBSCRIPTION-${Date.now()}`,
+        requestReferenceNumber,
         items: [
           {
             name: plan,
