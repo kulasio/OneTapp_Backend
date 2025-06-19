@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const { errorHandler } = require('./middleware/errorMiddleware');
+const axios = require('axios');
 
 // Load environment variables
 dotenv.config();
@@ -28,6 +29,49 @@ app.use('/api/auth', require('./routes/authRoutes'));
 
 app.get('/', (req, res) => {
   res.send('NFC Backend API is running!');
+});
+
+app.post('/maya-checkout', async (req, res) => {
+  try {
+    const { email, phone, plan } = req.body;
+    let amount = 99;
+    if (plan === 'Pro Tap') amount = 299;
+    if (plan === 'Power Tap') amount = 899;
+
+    const response = await axios.post(
+      process.env.MAYA_API_URL + '/checkout/v1/checkouts',
+      {
+        totalAmount: { value: amount, currency: 'PHP' },
+        buyer: {
+          firstName: 'NFC',
+          lastName: 'User',
+          contact: { phone, email }
+        },
+        redirectUrl: {
+          success: 'https://one-tapp-frontend.vercel.app/success',
+          failure: 'https://one-tapp-frontend.vercel.app/failure',
+          cancel: 'https://one-tapp-frontend.vercel.app/cancel'
+        },
+        requestReferenceNumber: `SUBSCRIPTION-${Date.now()}`,
+        items: [
+          {
+            name: plan,
+            quantity: 1,
+            totalAmount: { value: amount, currency: 'PHP' }
+          }
+        ]
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${Buffer.from(process.env.MAYA_PUBLIC_KEY + ':').toString('base64')}`
+        }
+      }
+    );
+    res.json({ redirectUrl: response.data.redirectUrl });
+  } catch (error) {
+    res.status(500).json({ error: error.response ? error.response.data : error.message });
+  }
 });
 
 // Error Handler
