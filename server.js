@@ -33,10 +33,15 @@ app.get('/', (req, res) => {
 
 app.post('/maya-checkout', async (req, res) => {
   try {
-    const { email, phone, plan } = req.body;
+    const { email, phone, plan, billingPeriod } = req.body;
     let amount = 99;
     if (plan === 'Pro Tap') amount = 299;
     if (plan === 'Power Tap') amount = 899;
+    if (billingPeriod === 'yearly') {
+      if (plan === 'Starter Tap') amount = 999;
+      if (plan === 'Pro Tap') amount = 2999;
+      if (plan === 'Power Tap') amount = 8999;
+    }
 
     const response = await axios.post(
       process.env.MAYA_API_URL + '/checkout/v1/checkouts',
