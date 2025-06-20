@@ -37,8 +37,8 @@ const initiatePayment = asyncHandler(async (req, res) => {
 
     // 3. Prepare the request to the Maya API
     // IMPORTANT: API keys and URLs should be in your .env file
-    const MAYA_API_URL = process.env.MAYA_CHECKOUT_URL;
-    const MAYA_PUBLIC_API_KEY = process.env.MAYA_PUBLIC_API_KEY;
+    const MAYA_API_URL = process.env.MAYA_API_URL;
+    const MAYA_PUBLIC_API_KEY = process.env.MAYA_PUBLIC_KEY;
 
     const payload = {
         totalAmount: {

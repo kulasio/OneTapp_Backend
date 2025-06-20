@@ -13,8 +13,8 @@ connectDB();
 const app = express();
 
 // Webhook for Maya must be before express.json() to use raw body.
-// The webhook controller and logic will be created in the next step.
-// app.post('/api/webhooks/maya', express.raw({ type: 'application/json' }), require('./controllers/webhookController').handleMayaWebhook);
+// The raw body is required for signature verification.
+app.post('/api/webhooks/maya', express.raw({ type: 'application/json' }), require('./controllers/webhookController').handleMayaWebhook);
 
 // Middleware
 app.use(express.json());
