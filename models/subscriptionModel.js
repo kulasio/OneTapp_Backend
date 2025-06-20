@@ -12,6 +12,8 @@ const subscriptionSchema = new mongoose.Schema({
   billingPeriod: { type: String, required: true },
   status: { type: String, default: 'pending' }, // pending, success, failed, cancelled
   requestReferenceNumber: { type: String, required: true },
+  startDate: { type: Date, default: Date.now },
+  nextBillingDate: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
