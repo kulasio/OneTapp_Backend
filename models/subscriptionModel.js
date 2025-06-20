@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const subscriptionSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false // Optional: Not all subscriptions might have a registered user initially
+  },
   email: { type: String, required: true },
   phone: { type: String, required: true },
   plan: { type: String, required: true },
