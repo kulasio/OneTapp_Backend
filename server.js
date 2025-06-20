@@ -17,24 +17,8 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// CORS configuration
-const allowedOrigins = [
-  'https://one-tapp-frontend.vercel.app',
-  'http://localhost:3000', // Example for local development
-  'http://127.0.0.1:5500' // Example for Live Server
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  }
+  origin: 'https://one-tapp-frontend.vercel.app'
 }));
 
 // Routes
