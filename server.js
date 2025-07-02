@@ -25,6 +25,7 @@ app.use(cors({
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/cards', require('./routes/cardRoutes'));
 app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
+app.use('/api/profiles', require('./routes/profileRoutes'));
 // app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 // app.use('/api/payments', require('./routes/paymentRoutes'));
