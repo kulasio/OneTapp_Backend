@@ -6,8 +6,8 @@ const bcrypt = require('bcryptjs');
 // @route   POST /api/auth/register
 // @access  Public
 exports.registerUser = async (req, res) => {
-    const { email, password, role } = req.body;
-    if (!email || !password) {
+    const { email, password, role, username } = req.body;
+    if (!email || !password || !username) {
         return res.status(400).json({ message: 'Please fill in all fields' });
     }
     try {
@@ -15,11 +15,13 @@ exports.registerUser = async (req, res) => {
         if (user) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        user = await User.create({ email, password, role });
+        const passwordHash = await bcrypt.hash(password, 10);
+        user = await User.create({ email, username, passwordHash, role });
         const token = user.getSignedJwtToken();
         res.status(201).json({
             _id: user._id,
             email: user.email,
+            username: user.username,
             role: user.role,
             token
         });
@@ -37,7 +39,7 @@ exports.loginUser = async (req, res) => {
         return res.status(400).json({ message: 'Please provide email and password' });
     }
     try {
-        const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({ email }).select('+passwordHash');
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
@@ -51,6 +53,7 @@ exports.loginUser = async (req, res) => {
         res.json({
             _id: user._id,
             email: user.email,
+            username: user.username,
             role: user.role,
             token
         });
@@ -68,6 +71,7 @@ exports.getMe = async (req, res) => {
         res.json({
             _id: user._id,
             email: user.email,
+            username: user.username,
             role: user.role
         });
     } catch (err) {
