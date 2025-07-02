@@ -24,10 +24,9 @@ const profileSchema = new mongoose.Schema({
     github: String
   },
   website: String,
-  profileImageId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Image', // Assuming you have an Image collection
-    default: null
+  profileImage: {
+    data: Buffer,
+    contentType: String
   },
   qrUrl: String,
   lastUpdated: {

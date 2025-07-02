@@ -27,7 +27,7 @@ exports.createProfile = async (req, res) => {
   try {
     const {
       userId, fullName, jobTitle, company, bio, contactEmail, contactPhone, contactLocation,
-      linkedin, twitter, github, website, profileImageUrl, qrUrl
+      linkedin, twitter, github, website, qrUrl
     } = req.body;
     const profile = new Profile({
       userId,
@@ -46,9 +46,14 @@ exports.createProfile = async (req, res) => {
         github
       },
       website,
-      profileImageUrl,
       qrUrl
     });
+    if (req.file) {
+      profile.profileImage = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype
+      };
+    }
     await profile.save();
     res.status(201).json(profile);
   } catch (err) {
@@ -61,7 +66,7 @@ exports.updateProfile = async (req, res) => {
   try {
     const {
       userId, fullName, jobTitle, company, bio, contactEmail, contactPhone, contactLocation,
-      linkedin, twitter, github, website, profileImageUrl, qrUrl
+      linkedin, twitter, github, website, qrUrl
     } = req.body;
     const profile = await Profile.findById(req.params.id);
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
@@ -81,9 +86,14 @@ exports.updateProfile = async (req, res) => {
       github
     };
     profile.website = website;
-    profile.profileImageUrl = profileImageUrl;
     profile.qrUrl = qrUrl;
     profile.lastUpdated = Date.now();
+    if (req.file) {
+      profile.profileImage = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype
+      };
+    }
     await profile.save();
     res.json(profile);
   } catch (err) {
