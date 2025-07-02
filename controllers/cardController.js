@@ -1,31 +1,38 @@
 const asyncHandler = require('express-async-handler');
 const Card = require('../models/cardModel');
 const User = require('../models/userModel');
+const Profile = require('../models/profileModel');
 
 // @desc    Get all cards for an admin
 // @route   GET /api/cards
 // @access  Private/Admin
 const getCardsForAdmin = asyncHandler(async (req, res) => {
-    const cards = await Card.find({}).populate('assignedUser', 'firstName lastName');
-    res.status(200).json({ success: true, cards });
+    const cards = await Card.find({}).populate('userId', 'username email');
+    res.status(200).json({ success: true, count: cards.length, cards });
+});
+
+// @desc    Get cards for current user
+// @route   GET /api/cards/my-cards
+// @access  Private
+const getMyCards = asyncHandler(async (req, res) => {
+    const cards = await Card.find({ userId: req.user.id });
+    res.status(200).json({ success: true, count: cards.length, cards });
 });
 
 // @desc    Get a single card's public data
 // @route   GET /api/cards/public/:id
 // @access  Public
 const getCardByIdPublic = asyncHandler(async (req, res) => {
-    const card = await Card.findById(req.params.id).populate('user', 'firstName lastName email profilePicture');
-    
+    const card = await Card.findById(req.params.id).populate('defaultProfileId');
     if (card) {
-        // Here you can filter what data is public
+        // Return only public card data and profile info
         const publicCardData = {
             _id: card._id,
-            user: card.user,
-            template: card.template,
-            socialLinks: card.socialLinks,
-            website: card.website,
-            bio: card.bio,
-            customFields: card.customFields
+            label: card.label,
+            assignedUrl: card.assignedUrl,
+            status: card.status,
+            createdAt: card.createdAt,
+            profile: card.defaultProfileId || null
         };
         res.status(200).json({ success: true, card: publicCardData });
     } else {
@@ -34,20 +41,19 @@ const getCardByIdPublic = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Get a single card's public data by nfcId
-// @route   GET /api/cards/public/nfc/:nfcId
+// @desc    Get a single card's public data by cardUid
+// @route   GET /api/cards/public/uid/:cardUid
 // @access  Public
-const getCardByNfcIdPublic = asyncHandler(async (req, res) => {
-    const card = await Card.findOne({ nfcId: req.params.nfcId }).populate('user', 'firstName lastName email profilePicture');
+const getCardByUidPublic = asyncHandler(async (req, res) => {
+    const card = await Card.findOne({ cardUid: req.params.cardUid }).populate('defaultProfileId');
     if (card) {
         const publicCardData = {
             _id: card._id,
-            user: card.user,
-            template: card.template,
-            socialLinks: card.socialLinks,
-            website: card.website,
-            bio: card.bio,
-            customFields: card.customFields
+            label: card.label,
+            assignedUrl: card.assignedUrl,
+            status: card.status,
+            createdAt: card.createdAt,
+            profile: card.defaultProfileId || null
         };
         res.status(200).json({ success: true, card: publicCardData });
     } else {
@@ -60,22 +66,36 @@ const getCardByNfcIdPublic = asyncHandler(async (req, res) => {
 // @route   POST /api/cards
 // @access  Private
 const createCard = asyncHandler(async (req, res) => {
-    const { user, nfcId, template, socialLinks, website, bio, customFields } = req.body;
-
-    if (!user || !nfcId) {
+    const { cardUid, label, assignedUrl, defaultProfileId, status } = req.body;
+    // cardUid is optional
+    if (!label || !assignedUrl) {
         res.status(400);
-        throw new Error('User and NFC ID are required');
+        throw new Error('Label and assignedUrl are required');
     }
-
-    const card = await Card.create({ user, nfcId, template, socialLinks, website, bio, customFields });
-    res.status(201).json(card);
+    // Check if cardUid already exists if provided
+    if (cardUid) {
+        const existingCard = await Card.findOne({ cardUid });
+        if (existingCard) {
+            res.status(400);
+            throw new Error('Card UID already exists');
+        }
+    }
+    const card = await Card.create({ 
+        userId: req.user.id, 
+        cardUid, 
+        label, 
+        assignedUrl, 
+        defaultProfileId, 
+        status
+    });
+    res.status(201).json({ success: true, card });
 });
 
 // @desc    Get card by ID for an admin
 // @route   GET /api/cards/:id
 // @access  Private/Admin
 const getCardByIdForAdmin = asyncHandler(async (req, res) => {
-    const card = await Card.findById(req.params.id);
+    const card = await Card.findById(req.params.id).populate('userId', 'username email').populate('defaultProfileId');
     if (!card) {
         res.status(404);
         throw new Error('Card not found');
@@ -83,30 +103,99 @@ const getCardByIdForAdmin = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, card });
 });
 
-// @desc    Update card
+// @desc    Get card by ID for current user
+// @route   GET /api/cards/my-cards/:id
+// @access  Private
+const getMyCardById = asyncHandler(async (req, res) => {
+    const card = await Card.findOne({ 
+        _id: req.params.id, 
+        userId: req.user.id 
+    }).populate('defaultProfileId');
+    if (!card) {
+        res.status(404);
+        throw new Error('Card not found');
+    }
+    res.status(200).json({ success: true, card });
+});
+
+// @desc    Update card (Admin only)
 // @route   PUT /api/cards/:id
 // @access  Private/Admin
 const updateCard = asyncHandler(async (req, res) => {
     const card = await Card.findById(req.params.id);
-
     if (card) {
-        const updatedCard = await Card.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.status(200).json(updatedCard);
+        const allowedUpdates = ['cardUid', 'label', 'assignedUrl', 'defaultProfileId', 'status'];
+        const updateData = {};
+        allowedUpdates.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+        const updatedCard = await Card.findByIdAndUpdate(
+            req.params.id, 
+            updateData, 
+            { new: true, runValidators: true }
+        ).populate('userId', 'username email').populate('defaultProfileId');
+        res.status(200).json({ success: true, card: updatedCard });
     } else {
         res.status(404);
         throw new Error('Card not found');
     }
 });
 
-// @desc    Delete card
+// @desc    Update my card
+// @route   PUT /api/cards/my-cards/:id
+// @access  Private
+const updateMyCard = asyncHandler(async (req, res) => {
+    const card = await Card.findOne({ 
+        _id: req.params.id, 
+        userId: req.user.id 
+    });
+    if (card) {
+        const allowedUpdates = ['label', 'assignedUrl', 'defaultProfileId', 'status'];
+        const updateData = {};
+        allowedUpdates.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+        const updatedCard = await Card.findByIdAndUpdate(
+            req.params.id, 
+            updateData, 
+            { new: true, runValidators: true }
+        ).populate('defaultProfileId');
+        res.status(200).json({ success: true, card: updatedCard });
+    } else {
+        res.status(404);
+        throw new Error('Card not found');
+    }
+});
+
+// @desc    Delete card (Admin only)
 // @route   DELETE /api/cards/:id
 // @access  Private/Admin
 const deleteCard = asyncHandler(async (req, res) => {
     const card = await Card.findById(req.params.id);
-
     if (card) {
         await card.remove();
-        res.status(200).json({ message: 'Card removed' });
+        res.status(200).json({ success: true, message: 'Card removed' });
+    } else {
+        res.status(404);
+        throw new Error('Card not found');
+    }
+});
+
+// @desc    Delete my card
+// @route   DELETE /api/cards/my-cards/:id
+// @access  Private
+const deleteMyCard = asyncHandler(async (req, res) => {
+    const card = await Card.findOne({ 
+        _id: req.params.id, 
+        userId: req.user.id 
+    });
+    if (card) {
+        await card.remove();
+        res.status(200).json({ success: true, message: 'Card removed' });
     } else {
         res.status(404);
         throw new Error('Card not found');
@@ -115,10 +204,14 @@ const deleteCard = asyncHandler(async (req, res) => {
 
 module.exports = {
     getCardsForAdmin,
+    getMyCards,
     getCardByIdPublic,
-    getCardByNfcIdPublic,
+    getCardByUidPublic,
     createCard,
     getCardByIdForAdmin,
+    getMyCardById,
     updateCard,
-    deleteCard
+    updateMyCard,
+    deleteCard,
+    deleteMyCard
 }; 

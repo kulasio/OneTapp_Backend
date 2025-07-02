@@ -2,23 +2,39 @@ const express = require('express');
 const router = express.Router();
 const {
     getCardsForAdmin,
+    getMyCards,
     getCardByIdPublic,
+    getCardByUidPublic,
     createCard,
     getCardByIdForAdmin,
+    getMyCardById,
     updateCard,
-    deleteCard
+    updateMyCard,
+    deleteCard,
+    deleteMyCard
 } = require('../controllers/cardController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-// Public route to get card details
+// Public routes
 router.route('/public/:id').get(getCardByIdPublic);
+router.route('/public/uid/:cardUid').get(getCardByUidPublic);
 
 // Admin routes
 router.route('/admin').get(protect, authorize('admin'), getCardsForAdmin);
 
-// Standard card routes (assuming these might be used by users for their own cards in the future)
-router.route('/')
+// User card management routes
+router.route('/my-cards')
+    .get(protect, getMyCards)
     .post(protect, createCard);
+
+router.route('/my-cards/:id')
+    .get(protect, getMyCardById)
+    .put(protect, updateMyCard)
+    .delete(protect, deleteMyCard);
+
+// Admin card management routes
+router.route('/')
+    .post(protect, authorize('admin'), createCard);
 
 router.route('/:id')
     .get(protect, authorize('admin'), getCardByIdForAdmin)
