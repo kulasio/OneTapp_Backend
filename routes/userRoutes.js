@@ -8,13 +8,15 @@ const {
     getCurrentUserCards,
     updateCurrentUserProfile,
     updateUser,
-    deleteUser
+    deleteUser,
+    createUser
 } = require('../controllers/userController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 // Admin routes
 router.route('/')
-    .get(protect, authorize('admin'), getUsers);
+    .get(protect, authorize('admin'), getUsers)
+    .post(protect, authorize('admin'), createUser);
 
 router.route('/:id')
     .get(protect, authorize('admin'), getUserById)

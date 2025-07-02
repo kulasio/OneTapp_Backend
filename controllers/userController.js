@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/userModel');
 const Card = require('../models/cardModel');
 const Profile = require('../models/profileModel');
+const bcrypt = require('bcryptjs');
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -134,6 +135,33 @@ const deleteUser = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Create a new user (Admin only)
+// @route   POST /api/users
+// @access  Private/Admin
+const createUser = asyncHandler(async (req, res) => {
+    const { username, email, password, role, status } = req.body;
+    if (!username || !email || !password || !role || !status) {
+        return res.status(400).json({ message: 'All fields are required.' });
+    }
+    // Check for duplicate email
+    const existing = await User.findOne({ email });
+    if (existing) {
+        return res.status(400).json({ message: 'User with this email already exists.' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, email, password: hashedPassword, role, status });
+    res.status(201).json({
+        success: true,
+        user: {
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            status: user.status
+        }
+    });
+});
+
 module.exports = {
     getUsers,
     getUserById,
@@ -142,5 +170,6 @@ module.exports = {
     getCurrentUserCards,
     updateCurrentUserProfile,
     updateUser,
-    deleteUser
+    deleteUser,
+    createUser
 }; 
