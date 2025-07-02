@@ -41,4 +41,6 @@ router.route('/:id')
     .put(protect, authorize('admin'), updateCard)
     .delete(protect, authorize('admin'), deleteCard);
 
+router.route('/').get(...); // for GET /api/cards
+
 module.exports = router; 
