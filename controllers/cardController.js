@@ -66,13 +66,11 @@ const getCardByUidPublic = asyncHandler(async (req, res) => {
 // @route   POST /api/cards
 // @access  Private
 const createCard = asyncHandler(async (req, res) => {
-    const { cardUid, label, assignedUrl, defaultProfileId, status } = req.body;
-    // cardUid is optional
+    const { userId, cardUid, label, assignedUrl, defaultProfileId, status } = req.body;
     if (!label || !assignedUrl) {
         res.status(400);
         throw new Error('Label and assignedUrl are required');
     }
-    // Check if cardUid already exists if provided
     if (cardUid) {
         const existingCard = await Card.findOne({ cardUid });
         if (existingCard) {
@@ -80,8 +78,10 @@ const createCard = asyncHandler(async (req, res) => {
             throw new Error('Card UID already exists');
         }
     }
+    // Allow admin to specify userId, otherwise use current user
+    const cardUserId = (req.user.role === 'admin' && userId) ? userId : req.user.id;
     const card = await Card.create({ 
-        userId: req.user.id, 
+        userId: cardUserId, 
         cardUid, 
         label, 
         assignedUrl, 
