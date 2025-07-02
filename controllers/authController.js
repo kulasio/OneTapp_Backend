@@ -15,8 +15,8 @@ exports.registerUser = async (req, res) => {
         if (user) {
             return res.status(400).json({ message: 'User already exists' });
         }
-        const passwordHash = await bcrypt.hash(password, 10);
-        user = await User.create({ email, username, passwordHash, role });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user = await User.create({ email, username, password: hashedPassword, role });
         const token = user.getSignedJwtToken();
         res.status(201).json({
             _id: user._id,
@@ -39,7 +39,7 @@ exports.loginUser = async (req, res) => {
         return res.status(400).json({ message: 'Please provide email and password' });
     }
     try {
-        const user = await User.findOne({ email }).select('+passwordHash');
+        const user = await User.findOne({ email }).select('+password');
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }

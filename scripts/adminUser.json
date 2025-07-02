@@ -3,7 +3,7 @@
     "_id": { "$oid": "64b7f2e2e1b1c2a1b2c3d4e5" },
     "username": "admin",
     "email": "admin@example.com",
-    "passwordHash": "$2a$10$wH6QwQwQwQwQwQwQwQwQwOQwQwQwQwQwQwQwQwQwQwQwQwQwQw",
+    "password": "$2a$10$lE6e2JCkCi0233wwE7sXi.h7GXyZBavSv0whBjIRKlBIUvEkG5.RC",
     "role": "admin",
     "status": "active",
     "lastLogin": null,

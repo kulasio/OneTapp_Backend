@@ -18,7 +18,7 @@ const userSchema = mongoose.Schema({
             'Please add a valid email'
         ]
     },
-    passwordHash: {
+    password: {
         type: String,
         required: [true, 'Please add a password'],
         minlength: [6, 'Password must be at least 6 characters long'],
@@ -44,11 +44,11 @@ const userSchema = mongoose.Schema({
 
 // Encrypt password using bcrypt before saving if modified
 userSchema.pre('save', async function(next) {
-    if (!this.isModified('passwordHash')) {
+    if (!this.isModified('password')) {
         return next();
     }
     const salt = await bcrypt.genSalt(10);
-    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
 });
 
@@ -63,7 +63,7 @@ userSchema.methods.getSignedJwtToken = function() {
 
 // Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function(enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.passwordHash);
+    return await bcrypt.compare(enteredPassword, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema); 
