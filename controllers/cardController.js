@@ -202,6 +202,35 @@ const deleteMyCard = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Get card, user, and profile info by cardUid (for dynamic NFC card)
+// @route   GET /api/cards/dynamic/:cardUid
+// @access  Public
+const getCardUserProfileByUid = asyncHandler(async (req, res) => {
+    const card = await Card.findOne({ cardUid: req.params.cardUid });
+    if (!card) {
+        res.status(404);
+        throw new Error('Card not found');
+    }
+    const user = await User.findById(card.userId).select('-password');
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+    let profile = null;
+    if (card.defaultProfileId) {
+        profile = await Profile.findById(card.defaultProfileId);
+    } else {
+        // Try to find a profile for the user
+        profile = await Profile.findOne({ userId: user._id });
+    }
+    res.status(200).json({
+        success: true,
+        card,
+        user,
+        profile
+    });
+});
+
 module.exports = {
     getCardsForAdmin,
     getMyCards,
@@ -213,5 +242,6 @@ module.exports = {
     updateCard,
     updateMyCard,
     deleteCard,
-    deleteMyCard
+    deleteMyCard,
+    getCardUserProfileByUid
 }; 

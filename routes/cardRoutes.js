@@ -11,13 +11,15 @@ const {
     updateCard,
     updateMyCard,
     deleteCard,
-    deleteMyCard
+    deleteMyCard,
+    getCardUserProfileByUid
 } = require('../controllers/cardController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 // Public routes
 router.route('/public/:id').get(getCardByIdPublic);
 router.route('/public/uid/:cardUid').get(getCardByUidPublic);
+router.route('/dynamic/:cardUid').get(getCardUserProfileByUid);
 
 // Admin routes
 router.route('/admin').get(protect, authorize('admin'), getCardsForAdmin);
