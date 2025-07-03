@@ -220,11 +220,8 @@ const getCardUserProfileByUid = asyncHandler(async (req, res) => {
     if (card.defaultProfileId) {
         profile = await Profile.findById(card.defaultProfileId);
     } else {
+        // Try to find a profile for the user
         profile = await Profile.findOne({ userId: user._id });
-    }
-    // Convert binary image to base64 if present
-    if (profile && profile.profileImage && profile.profileImage.data) {
-        profile.profileImage.data = profile.profileImage.data.toString('base64');
     }
     res.status(200).json({
         success: true,
