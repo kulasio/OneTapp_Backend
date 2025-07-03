@@ -223,15 +223,13 @@ const getCardUserProfileByUid = asyncHandler(async (req, res) => {
         profile = await Profile.findOne({ userId: user._id });
     }
     // Convert binary image to base64 if present and log for debugging
-    if (profile && profile.profileImage && profile.profileImage.data) {
-        if (Buffer.isBuffer(profile.profileImage.data)) {
-            profile.profileImage.data = profile.profileImage.data.toString('base64');
-            console.log('Profile image base64 (first 100 chars):', profile.profileImage.data.substring(0, 100));
-        } else {
-            console.log('Profile image data is not a Buffer:', typeof profile.profileImage.data);
-        }
+    if (profile && profile.profileImage && profile.profileImage.data && typeof Buffer !== 'undefined' && Buffer.isBuffer(profile.profileImage.data)) {
+        profile.profileImage.data = profile.profileImage.data.toString('base64');
+        console.log('Profile image base64 (first 100 chars):', profile.profileImage.data.substring(0, 100));
+    } else {
+        console.log('Profile image data is not a Buffer or is missing:', typeof profile?.profileImage?.data, profile?.profileImage?.data);
     }
-    console.log('Sending profile:', profile);
+    console.log('Sending profile keys:', Object.keys(profile || {}));
     res.status(200).json({
         success: true,
         card,
