@@ -1,16 +1,23 @@
 const Profile = require('../models/profileModel');
 const User = require('../models/userModel');
 
+// Helper to convert Buffer to base64 string if needed
+function ensureProfileImageBase64(profile) {
+  if (profile && profile.profileImage && profile.profileImage.data) {
+    // If data is a Buffer object (with .data array), convert to base64
+    if (Array.isArray(profile.profileImage.data.data)) {
+      profile.profileImage.data = Buffer.from(profile.profileImage.data.data).toString('base64');
+    } else if (Buffer.isBuffer(profile.profileImage.data)) {
+      profile.profileImage.data = profile.profileImage.data.toString('base64');
+    }
+  }
+}
+
 // Get all profiles
 exports.getProfiles = async (req, res) => {
   try {
     const profiles = await Profile.find().populate('userId', 'username email');
-    // Convert image buffer to base64 for each profile
-    profiles.forEach(profile => {
-      if (profile.profileImage && profile.profileImage.data) {
-        profile.profileImage.data = profile.profileImage.data.toString('base64');
-      }
-    });
+    profiles.forEach(ensureProfileImageBase64);
     res.json(profiles);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -22,9 +29,7 @@ exports.getProfileById = async (req, res) => {
   try {
     const profile = await Profile.findById(req.params.id).populate('userId', 'username email');
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
-    if (profile.profileImage && profile.profileImage.data) {
-      profile.profileImage.data = profile.profileImage.data.toString('base64');
-    }
+    ensureProfileImageBase64(profile);
     res.json(profile);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -64,10 +69,7 @@ exports.createProfile = async (req, res) => {
       };
     }
     await profile.save();
-    // Convert image buffer to base64
-    if (profile.profileImage && profile.profileImage.data) {
-      profile.profileImage.data = profile.profileImage.data.toString('base64');
-    }
+    ensureProfileImageBase64(profile);
     res.status(201).json(profile);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -108,10 +110,7 @@ exports.updateProfile = async (req, res) => {
       };
     }
     await profile.save();
-    // Convert image buffer to base64
-    if (profile.profileImage && profile.profileImage.data) {
-      profile.profileImage.data = profile.profileImage.data.toString('base64');
-    }
+    ensureProfileImageBase64(profile);
     res.json(profile);
   } catch (err) {
     res.status(400).json({ error: err.message });
