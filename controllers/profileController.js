@@ -5,6 +5,12 @@ const User = require('../models/userModel');
 exports.getProfiles = async (req, res) => {
   try {
     const profiles = await Profile.find().populate('userId', 'username email');
+    // Convert image buffer to base64 for each profile
+    profiles.forEach(profile => {
+      if (profile.profileImage && profile.profileImage.data) {
+        profile.profileImage.data = profile.profileImage.data.toString('base64');
+      }
+    });
     res.json(profiles);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -16,6 +22,9 @@ exports.getProfileById = async (req, res) => {
   try {
     const profile = await Profile.findById(req.params.id).populate('userId', 'username email');
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    if (profile.profileImage && profile.profileImage.data) {
+      profile.profileImage.data = profile.profileImage.data.toString('base64');
+    }
     res.json(profile);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -55,6 +64,10 @@ exports.createProfile = async (req, res) => {
       };
     }
     await profile.save();
+    // Convert image buffer to base64
+    if (profile.profileImage && profile.profileImage.data) {
+      profile.profileImage.data = profile.profileImage.data.toString('base64');
+    }
     res.status(201).json(profile);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -95,6 +108,10 @@ exports.updateProfile = async (req, res) => {
       };
     }
     await profile.save();
+    // Convert image buffer to base64
+    if (profile.profileImage && profile.profileImage.data) {
+      profile.profileImage.data = profile.profileImage.data.toString('base64');
+    }
     res.json(profile);
   } catch (err) {
     res.status(400).json({ error: err.message });
