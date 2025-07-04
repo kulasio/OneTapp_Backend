@@ -41,7 +41,8 @@ exports.createProfile = async (req, res) => {
   try {
     const {
       userId, fullName, jobTitle, company, bio, contactEmail, contactPhone, contactLocation,
-      linkedin, twitter, github, website, qrUrl
+      linkedin, twitter, github, facebook, instagram, tiktok, youtube, whatsapp, telegram,
+      snapchat, pinterest, reddit, website, other, qrUrl
     } = req.body;
     const profile = new Profile({
       userId,
@@ -57,7 +58,18 @@ exports.createProfile = async (req, res) => {
       socialLinks: {
         linkedin,
         twitter,
-        github
+        github,
+        facebook,
+        instagram,
+        tiktok,
+        youtube,
+        whatsapp,
+        telegram,
+        snapchat,
+        pinterest,
+        reddit,
+        website, // for personal site/blog
+        other
       },
       website,
       qrUrl
@@ -81,7 +93,8 @@ exports.updateProfile = async (req, res) => {
   try {
     const {
       userId, fullName, jobTitle, company, bio, contactEmail, contactPhone, contactLocation,
-      linkedin, twitter, github, website, qrUrl
+      linkedin, twitter, github, facebook, instagram, tiktok, youtube, whatsapp, telegram,
+      snapchat, pinterest, reddit, website, other, qrUrl
     } = req.body;
     const profile = await Profile.findById(req.params.id);
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
@@ -98,7 +111,18 @@ exports.updateProfile = async (req, res) => {
     profile.socialLinks = {
       linkedin,
       twitter,
-      github
+      github,
+      facebook,
+      instagram,
+      tiktok,
+      youtube,
+      whatsapp,
+      telegram,
+      snapchat,
+      pinterest,
+      reddit,
+      website, // for personal site/blog
+      other
     };
     profile.website = website;
     profile.qrUrl = qrUrl;
