@@ -21,7 +21,18 @@ const profileSchema = new mongoose.Schema({
   socialLinks: {
     linkedin: String,
     twitter: String,
-    github: String
+    github: String,
+    facebook: String,
+    instagram: String,
+    tiktok: String,
+    youtube: String,
+    whatsapp: String,
+    telegram: String,
+    snapchat: String,
+    pinterest: String,
+    reddit: String,
+    website: String, // for personal site/blog
+    other: String    // for custom/other
   },
   website: String,
   profileImage: {
