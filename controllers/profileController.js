@@ -1,5 +1,6 @@
 const Profile = require('../models/profileModel');
 const User = require('../models/userModel');
+const mongoose = require('mongoose');
 
 // Helper to convert Buffer to base64 string if needed
 function ensureProfileImageBase64(profile) {
@@ -144,10 +145,15 @@ exports.updateProfile = async (req, res) => {
 // Delete a profile
 exports.deleteProfile = async (req, res) => {
   try {
+    // Check for valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid profile ID' });
+    }
     const profile = await Profile.findByIdAndDelete(req.params.id);
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
     res.json({ message: 'Profile deleted' });
   } catch (err) {
+    console.error('Error deleting profile:', err);
     res.status(500).json({ error: err.message });
   }
 }; 
