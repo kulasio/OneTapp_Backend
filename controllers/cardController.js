@@ -177,7 +177,7 @@ const updateMyCard = asyncHandler(async (req, res) => {
 const deleteCard = asyncHandler(async (req, res) => {
     const card = await Card.findById(req.params.id);
     if (card) {
-        await card.remove();
+        await card.deleteOne();
         res.status(200).json({ success: true, message: 'Card removed' });
     } else {
         res.status(404);
@@ -194,7 +194,7 @@ const deleteMyCard = asyncHandler(async (req, res) => {
         userId: req.user.id 
     });
     if (card) {
-        await card.remove();
+        await card.deleteOne();
         res.status(200).json({ success: true, message: 'Card removed' });
     } else {
         res.status(404);
