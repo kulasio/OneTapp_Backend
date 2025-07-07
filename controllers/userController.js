@@ -127,7 +127,7 @@ const deleteUser = asyncHandler(async (req, res) => {
         // Also delete all cards and profile associated with this user
         await Card.deleteMany({ userId: req.params.id });
         await Profile.deleteMany({ userId: req.params.id });
-        await user.remove();
+        await user.deleteOne();
         res.status(200).json({ success: true, message: 'User, profile, and associated cards removed' });
     } else {
         res.status(404);
