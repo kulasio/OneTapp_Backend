@@ -150,6 +150,13 @@ const createUser = asyncHandler(async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ username, email, password: hashedPassword, role, status });
+
+    // Create a blank profile for the new user
+    await Profile.create({
+        userId: user._id,
+        fullName: username || 'Unnamed User'
+    });
+
     res.status(201).json({
         success: true,
         user: {
