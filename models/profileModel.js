@@ -40,6 +40,45 @@ const profileSchema = new mongoose.Schema({
     contentType: String
   },
   qrUrl: String,
+  // NEW FIELDS
+  featuredLinks: [
+    {
+      label: String,
+      url: String,
+      icon: String,
+      order: Number
+    }
+  ],
+  gallery: [
+    {
+      type: { type: String, enum: ['image', 'video', 'document'] },
+      url: String,
+      thumbnail: String,
+      title: String,
+      description: String,
+      order: Number
+    }
+  ],
+  recentActivity: [
+    {
+      type: String,
+      title: String,
+      description: String,
+      url: String,
+      date: Date,
+      icon: String,
+      order: Number
+    }
+  ],
+  verificationStatus: {
+    type: {
+      type: String,
+      enum: ['verified', 'unverified', 'pending'],
+      default: 'unverified'
+    },
+    verifiedAt: Date,
+    verifiedBy: { type: mongoose.Schema.Types.Mixed }
+  },
   lastUpdated: {
     type: Date,
     default: Date.now

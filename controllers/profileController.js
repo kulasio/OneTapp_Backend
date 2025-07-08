@@ -43,7 +43,8 @@ exports.createProfile = async (req, res) => {
     const {
       userId, fullName, jobTitle, company, bio, contactEmail, contactPhone, contactLocation,
       linkedin, twitter, github, facebook, instagram, tiktok, youtube, whatsapp, telegram,
-      snapchat, pinterest, reddit, website, other, qrUrl
+      snapchat, pinterest, reddit, website, other, qrUrl,
+      featuredLinks, gallery, recentActivity, verificationStatus
     } = req.body;
     const profile = new Profile({
       userId,
@@ -75,6 +76,19 @@ exports.createProfile = async (req, res) => {
       website,
       qrUrl
     });
+    // Handle new fields (parse JSON if needed)
+    if (featuredLinks) {
+      profile.featuredLinks = typeof featuredLinks === 'string' ? JSON.parse(featuredLinks) : featuredLinks;
+    }
+    if (gallery) {
+      profile.gallery = typeof gallery === 'string' ? JSON.parse(gallery) : gallery;
+    }
+    if (recentActivity) {
+      profile.recentActivity = typeof recentActivity === 'string' ? JSON.parse(recentActivity) : recentActivity;
+    }
+    if (verificationStatus) {
+      profile.verificationStatus = typeof verificationStatus === 'string' ? JSON.parse(verificationStatus) : verificationStatus;
+    }
     if (req.file) {
       profile.profileImage = {
         data: req.file.buffer,
@@ -95,7 +109,8 @@ exports.updateProfile = async (req, res) => {
     const {
       userId, fullName, jobTitle, company, bio, contactEmail, contactPhone, contactLocation,
       linkedin, twitter, github, facebook, instagram, tiktok, youtube, whatsapp, telegram,
-      snapchat, pinterest, reddit, website, other, qrUrl
+      snapchat, pinterest, reddit, website, other, qrUrl,
+      featuredLinks, gallery, recentActivity, verificationStatus
     } = req.body;
     const profile = await Profile.findById(req.params.id);
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
@@ -128,6 +143,19 @@ exports.updateProfile = async (req, res) => {
     profile.website = website;
     profile.qrUrl = qrUrl;
     profile.lastUpdated = Date.now();
+    // Handle new fields (parse JSON if needed)
+    if (featuredLinks !== undefined) {
+      profile.featuredLinks = typeof featuredLinks === 'string' ? JSON.parse(featuredLinks) : featuredLinks;
+    }
+    if (gallery !== undefined) {
+      profile.gallery = typeof gallery === 'string' ? JSON.parse(gallery) : gallery;
+    }
+    if (recentActivity !== undefined) {
+      profile.recentActivity = typeof recentActivity === 'string' ? JSON.parse(recentActivity) : recentActivity;
+    }
+    if (verificationStatus !== undefined) {
+      profile.verificationStatus = typeof verificationStatus === 'string' ? JSON.parse(verificationStatus) : verificationStatus;
+    }
     if (req.file) {
       profile.profileImage = {
         data: req.file.buffer,
