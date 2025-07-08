@@ -166,6 +166,7 @@ exports.updateProfile = async (req, res) => {
     ensureProfileImageBase64(profile);
     res.json(profile);
   } catch (err) {
+    console.error('Update profile error:', err); // Add this line
     res.status(400).json({ error: err.message });
   }
 };
