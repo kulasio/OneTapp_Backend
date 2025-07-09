@@ -20,7 +20,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors({
   origin: [
     'https://one-tapp-frontend.vercel.app',
-    'https://nfc-card-1.vercel.app'
+    'https://nfc-card-1.vercel.app',
+    'https://nfc-card-test1-9bh9-bkzkh7b5k-koys-projects-c710c2ef.vercel.app',
+    'http://localhost:3000'
   ]
 }));
 
