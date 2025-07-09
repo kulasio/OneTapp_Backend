@@ -10,4 +10,7 @@ router.post('/', upload.single('profileImage'), profileController.createProfile)
 router.put('/:id', upload.single('profileImage'), profileController.updateProfile);
 router.delete('/:id', profileController.deleteProfile);
 
+// Gallery image upload endpoint
+router.post('/gallery/upload-image', upload.single('image'), profileController.uploadGalleryImage);
+
 module.exports = router; 

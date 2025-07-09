@@ -185,4 +185,19 @@ exports.deleteProfile = async (req, res) => {
     console.error('Error deleting profile:', err);
     res.status(500).json({ error: err.message });
   }
+};
+
+// Upload gallery image (for gallery/media section)
+exports.uploadGalleryImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file uploaded' });
+    }
+    // For now, return a base64 data URL (like profile images)
+    const base64 = req.file.buffer.toString('base64');
+    const url = `data:${req.file.mimetype};base64,${base64}`;
+    res.json({ url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }; 
