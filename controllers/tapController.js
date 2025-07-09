@@ -5,4 +5,7 @@ exports.logTap = async (req, res) => {
 };
 
 // Optionally, add logUserAction if you want to track user actions separately
-// exports.logUserAction = async (req, res) => { /* ... */ }; 
+exports.logUserAction = async (req, res) => {
+  // TODO: Save user action to DB (implement your logic here)
+  res.status(201).json({ message: 'User action logged' });
+}; 

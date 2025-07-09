@@ -6,6 +6,6 @@ const tapController = require('../controllers/tapController');
 router.post('/', tapController.logTap);
 
 // Optionally: Log a user action (uncomment if you implement this)
-// router.post('/action', tapController.logUserAction);
+router.post('/action', tapController.logUserAction);
 
 module.exports = router; 
