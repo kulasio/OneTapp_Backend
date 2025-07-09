@@ -1,11 +1,20 @@
+const TapLog = require('../models/tapLogModel');
+
 exports.logTap = async (req, res) => {
-  // TODO: Save tap data to DB (implement your logic here)
-  // Example: const tap = await Tap.create(req.body);
-  res.status(201).json({ message: 'Tap logged' });
+  try {
+    const tap = await TapLog.create(req.body);
+    res.status(201).json(tap);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-// Optionally, add logUserAction if you want to track user actions separately
 exports.logUserAction = async (req, res) => {
-  // TODO: Save user action to DB (implement your logic here)
-  res.status(201).json({ message: 'User action logged' });
+  try {
+    // For now, create a new TapLog for each user action
+    const actionLog = await TapLog.create(req.body);
+    res.status(201).json(actionLog);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }; 
