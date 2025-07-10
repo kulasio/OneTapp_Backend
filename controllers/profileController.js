@@ -10,6 +10,13 @@ function ensureProfileImageBase64(profile) {
       profile.profileImage.data = Buffer.from(profile.profileImage.data.data).toString('base64');
     } else if (Buffer.isBuffer(profile.profileImage.data)) {
       profile.profileImage.data = profile.profileImage.data.toString('base64');
+    } else if (
+      typeof profile.profileImage.data === 'object' &&
+      profile.profileImage.data._bsontype === 'Binary' &&
+      profile.profileImage.data.buffer
+    ) {
+      // Handle BSON Binary type from MongoDB
+      profile.profileImage.data = Buffer.from(profile.profileImage.data.buffer).toString('base64');
     }
   }
 }
