@@ -106,10 +106,6 @@ exports.createProfile = async (req, res) => {
 // Update a profile
 exports.updateProfile = async (req, res) => {
   try {
-    console.log('UpdateProfile called with params:', req.params);
-    console.log('Request file:', req.file);
-    console.log('Request body keys:', Object.keys(req.body));
-    
     const {
       userId, fullName, jobTitle, company, bio, contactEmail, contactPhone, contactLocation,
       linkedin, twitter, github, facebook, instagram, tiktok, youtube, whatsapp, telegram,
@@ -161,18 +157,10 @@ exports.updateProfile = async (req, res) => {
       profile.verificationStatus = typeof verificationStatus === 'string' ? JSON.parse(verificationStatus) : verificationStatus;
     }
     if (req.file) {
-      console.log('Profile image received in updateProfile:', {
-        filename: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        fieldname: req.file.fieldname
-      });
       profile.profileImage = {
         data: req.file.buffer,
         contentType: req.file.mimetype
       };
-    } else {
-      console.log('No profile image file received in updateProfile request');
     }
     await profile.save();
     ensureProfileImageBase64(profile);
