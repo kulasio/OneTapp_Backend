@@ -6,26 +6,25 @@ const mongoose = require('mongoose');
 function ensureProfileImageBase64(profile) {
   if (profile && profile.profileImage && profile.profileImage.data) {
     let buf = profile.profileImage.data;
-    // Handle nested .data (BSON Binary, Buffer, or Array)
+    // Handle { type: 'Buffer', data: [...] }
     if (buf && typeof buf === 'object' && buf.type === 'Buffer' && Array.isArray(buf.data)) {
       buf = buf.data;
-    } else if (buf && typeof buf === 'object' && Array.isArray(buf.data)) {
+    }
+    // Handle nested .data.data (BSON Binary)
+    if (buf && typeof buf === 'object' && Array.isArray(buf.data)) {
       buf = buf.data;
     }
+    // If still an object, try to convert to Buffer
     if (Array.isArray(buf)) {
       profile.profileImage.data = Buffer.from(buf).toString('base64');
     } else if (Buffer.isBuffer(buf)) {
       profile.profileImage.data = buf.toString('base64');
     } else if (typeof buf === 'string') {
-      // Already base64
       profile.profileImage.data = buf;
     } else {
-      // Fallback: try to convert
-      try {
-        profile.profileImage.data = Buffer.from(buf).toString('base64');
-      } catch (e) {
-        profile.profileImage.data = '';
-      }
+      // Fallback: stringify and warn
+      profile.profileImage.data = '';
+      console.warn('Unknown profileImage.data format:', buf);
     }
   }
 }
