@@ -5,18 +5,27 @@ const mongoose = require('mongoose');
 // Helper to convert Buffer to base64 string if needed
 function ensureProfileImageBase64(profile) {
   if (profile && profile.profileImage && profile.profileImage.data) {
-    // If data is a Buffer object (with .data array), convert to base64
-    if (Array.isArray(profile.profileImage.data.data)) {
-      profile.profileImage.data = Buffer.from(profile.profileImage.data.data).toString('base64');
-    } else if (Buffer.isBuffer(profile.profileImage.data)) {
-      profile.profileImage.data = profile.profileImage.data.toString('base64');
-    } else if (
-      typeof profile.profileImage.data === 'object' &&
-      profile.profileImage.data._bsontype === 'Binary' &&
-      profile.profileImage.data.buffer
-    ) {
-      // Handle BSON Binary type from MongoDB
-      profile.profileImage.data = Buffer.from(profile.profileImage.data.buffer).toString('base64');
+    let buf = profile.profileImage.data;
+    // Handle nested .data (BSON Binary, Buffer, or Array)
+    if (buf && typeof buf === 'object' && buf.type === 'Buffer' && Array.isArray(buf.data)) {
+      buf = buf.data;
+    } else if (buf && typeof buf === 'object' && Array.isArray(buf.data)) {
+      buf = buf.data;
+    }
+    if (Array.isArray(buf)) {
+      profile.profileImage.data = Buffer.from(buf).toString('base64');
+    } else if (Buffer.isBuffer(buf)) {
+      profile.profileImage.data = buf.toString('base64');
+    } else if (typeof buf === 'string') {
+      // Already base64
+      profile.profileImage.data = buf;
+    } else {
+      // Fallback: try to convert
+      try {
+        profile.profileImage.data = Buffer.from(buf).toString('base64');
+      } catch (e) {
+        profile.profileImage.data = '';
+      }
     }
   }
 }
