@@ -207,4 +207,17 @@ exports.uploadGalleryImage = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+};
+
+exports.getProfileImage = async (req, res) => {
+  try {
+    const profile = await Profile.findById(req.params.id);
+    if (!profile || !profile.profileImage || !profile.profileImage.data) {
+      return res.status(404).send('No image');
+    }
+    res.set('Content-Type', profile.profileImage.contentType || 'image/jpeg');
+    res.send(profile.profileImage.data);
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
 }; 

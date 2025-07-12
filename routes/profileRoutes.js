@@ -12,5 +12,6 @@ router.delete('/:id', profileController.deleteProfile);
 
 // Gallery image upload endpoint
 router.post('/gallery/upload-image', upload.single('image'), profileController.uploadGalleryImage);
+router.get('/:id/image', profileController.getProfileImage);
 
 module.exports = router; 
