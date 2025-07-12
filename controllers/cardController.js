@@ -3,6 +3,14 @@ const Card = require('../models/cardModel');
 const User = require('../models/userModel');
 const Profile = require('../models/profileModel');
 
+function ensureProfileImageBase64(profile) {
+  if (profile && profile.profileImage && profile.profileImage.data) {
+    if (Array.isArray(profile.profileImage.data)) {
+      profile.profileImage.data = Buffer.from(profile.profileImage.data).toString('base64');
+    }
+  }
+}
+
 // @desc    Get all cards for an admin
 // @route   GET /api/cards
 // @access  Private/Admin
@@ -223,23 +231,8 @@ const getCardUserProfileByUid = asyncHandler(async (req, res) => {
         // Try to find a profile for the user
         profile = await Profile.findOne({ userId: user._id });
     }
-    
-    // Convert profile image to base64 if it exists
-    if (profile && profile.profileImage && profile.profileImage.data) {
-        if (Array.isArray(profile.profileImage.data.data)) {
-            // Buffer object with .data array, convert to base64
-            profile.profileImage.data = Buffer.from(profile.profileImage.data.data).toString('base64');
-        } else if (Buffer.isBuffer(profile.profileImage.data)) {
-            // Direct Buffer, convert to base64
-            profile.profileImage.data = profile.profileImage.data.toString('base64');
-        } else if (
-            typeof profile.profileImage.data === 'object' &&
-            profile.profileImage.data._bsontype === 'Binary' &&
-            profile.profileImage.data.buffer
-        ) {
-            // Handle BSON Binary type from MongoDB
-            profile.profileImage.data = Buffer.from(profile.profileImage.data.buffer).toString('base64');
-        }
+    if (profile) {
+      ensureProfileImageBase64(profile);
     }
     
     res.status(200).json({
